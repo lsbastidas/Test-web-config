@@ -1,0 +1,27 @@
+name: Comentar web.config
+
+on:
+
+  workflow_dispatch: #
+
+jobs:
+  modificar-webconfig:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Run script to modify web.config
+      run: |
+        FILE=web3.config
+        # Insert <!-- before the specific <sessionState> block
+        sed -i '/<sessionState mode="Custom" customProvider="MySessionStateStore">/i <!--' $FILE
+        # Insert --> after the specific </sessionState> block
+        sed -i '/<\/sessionState>/,/^<!--/!b;/<\/sessionState>/a -->' $FILE
+                
+    - name: Upload modified web.config
+      uses: actions/upload-artifact@v2
+      with:
+        name: web3.config
+        path: web3.config
