@@ -18,7 +18,7 @@ jobs:
         sed -i '/<sessionState>/,/<\/sessionState>/ s/^/<!-- /; s/$/ -->/' web.config
 
     - name: Upload modified web.config
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
-        name: web-config-modified
+        name: web.config
         path: web.config
