@@ -14,8 +14,8 @@ jobs:
 
     - name: Run script to modify web.config
       run: |
-        sed -i '/<sessionState/,/<\/sessionState>/ s/^/<!-- /' web.config
-        sed -i '/<sessionState/,/<\/sessionState>/ s/$/ -->/' web.config
+        sed -i 's/<sessionState/<!-- <sessionState/g' web.config
+        sed -i 's/sessionState>/sessionState> -->/g' web.config
         
         
     - name: Upload modified web.config
