@@ -14,11 +14,11 @@ jobs:
 
     - name: Run script to modify web.config
       run: |
-        sed -i 's/<sessionState/<!-- <sessionState/g' web.config
-        sed -i 's/sessionState>/sessionState> -->/g' web.config
+        sed -i 's/<sessionState/<!-- <sessionState/g' web3.config
+        sed -i 's/sessionState>/sessionState> -->/g' web3.config
                 
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
-        name: web.config
-        path: web.config
+        name: web3.config
+        path: web3.config
