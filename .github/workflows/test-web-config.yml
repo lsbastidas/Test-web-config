@@ -16,6 +16,7 @@ jobs:
       run: |
         
         #sed -i '/<sessionState>/,/<\/sessionState>/ s/^/<!-- /; s/$/ -->/' web.config
+
         sed -i '/<sessionState/,/<\/sessionState>/ s/^/<!-- /' web.config
         sed -i '/<sessionState/,/<\/sessionState>/ s/$/ -->/' web.config
 
