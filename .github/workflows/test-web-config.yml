@@ -1,0 +1,25 @@
+name: Cambio en web.config
+
+on:
+
+  workflow_dispatch: #
+
+jobs:
+  modificar-webconfig:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Run script to modify web.config
+      run: |
+        #!/bin/bash
+        FILE="/web.config"
+        sed -i '/<sessionState>/,/<\/sessionState>/ s/^/<!-- /; s/$/ -->/' $FILE
+
+    - name: Upload modified web.config
+      uses: actions/upload-artifact@v3
+      with:
+        name: web-config-modified
+        path: web.config
