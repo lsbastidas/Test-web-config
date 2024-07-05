@@ -9,56 +9,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Run script to modify web.config
-      run: |
-        # Crear un archivo temporal para almacenar el resultado
-        tmpfile=$(mktemp)
-
-        # Procesar el archivo con awk para comentar la segunda ocurrencia de <sessionState> y </sessionState>
-        awk '
-        BEGIN {
-            inside_comment = 0;
-            count_open = 0;
-            count_close = 0;
-        }
-        {
-            # Detectar inicio de bloque comentado
-            if (/<\!--.*<sessionState/) {
-                inside_comment = 1;
-            }
-            
-            # Detectar fin de bloque comentado
-            if (/sessionState>.*-->/) {
-                inside_comment = 0;
-            }
-            
-            # Contar y comentar la segunda ocurrencia de <sessionState> fuera de bloques comentados
-            if (!inside_comment && /<sessionState/) {
-                count_open++;
-                if (count_open == 2) {
-                    sub(/<sessionState/, "<!-- <sessionState");
-                }
-            }
-            
-            # Contar y comentar la segunda ocurrencia de </sessionState> fuera de bloques comentados
-            if (!inside_comment && /<\/sessionState>/) {
-                count_close++;
-                if (count_close == 2) {
-                    sub(/<\/sessionState>/, "sessionState> -->");
-                }
-            }
-            
-            # Imprimir la línea modificada o no modificada
-            print $0;
-        }
-        ' web3.config > "$tmpfile"
-
-        # Reemplazar el archivo original con el archivo temporal
-        mv "$tmpfile" web3.config
-
+    - name: Comentar bloque de código en web.config
+      uses: actions/github-script@v6
+      with:
+        script: |
+          // Obtener el contenido del archivo web.config
+          const fs = require('fs');
+          const webConfigPath = 'web.config';
+          const webConfigContent = fs.readFileSync(webConfigPath, 'utf8');
+    
+          // Marcadores de comentario para el bloque específico
+          const startCommentMarker = '<sessionState mode="Custom" customProvider="MySessionStateStore">';
+          const endCommentMarker = '</sessionState>';
+    
+          // Buscar los marcadores de comentario
+          const startCommentIndex = webConfigContent.indexOf(startCommentMarker);
+          const endCommentIndex = webConfigContent.indexOf(endCommentMarker, startCommentIndex + startCommentMarker.length);
+    
+          // Si se encuentran los marcadores, comentar el bloque
+          if (startCommentIndex !== -1 && endCommentIndex !== -1) {
+            const commentedBlock = webConfigContent.substring(startCommentIndex, endCommentIndex + endCommentMarker.length);
+            const updatedWebConfigContent = webConfigContent.replace(commentedBlock, 
+                                                                    '');
+    
+            // Actualizar el archivo web.config con el código comentado
+            fs.writeFileSync(webConfigPath, updatedWebConfigContent, 'utf8');
+            console.log('Bloque de código comentado correctamente en web.config');
+          } else {
+            console.error('No se encontraron los marcadores de comentario en web.config');
+          }
+    
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
