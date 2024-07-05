@@ -14,17 +14,8 @@ jobs:
 
     - name: Run script to modify web.config
       run: |
-        #!/bin/bash
-
-        # Nombre del archivo
-        FILE="web3.config"
-
-        # Patrones para buscar y comentar el bloque específico
-        start_pattern='<sessionState mode="Custom" customProvider="MySessionStateStore">'
-        end_pattern='</sessionState>'
-
-        # Usamos sed para comentar el bloque específico
-        sed -i'' -e "\%${start_pattern}%,\%${end_pattern}% s%^%<!-- %" -e "\%${end_pattern}% s%$% -->%" "$FILE"
+        sed -i '0,/<sessionState/s//<!-- <sessionState/' web3.config
+        sed -i '0,/sessionState>/!{0,/sessionState>/s//sessionState> -->/}' web3.config
                 
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
