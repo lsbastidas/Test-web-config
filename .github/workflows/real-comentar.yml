@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
     - name: Comentar bloque de código en web.config
       uses: actions/github-script@v6
       with:
@@ -38,7 +41,7 @@ jobs:
           } else {
             console.error('No se encontraron los marcadores de comentario en web.config');
           }
-    
+            
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
