@@ -24,7 +24,7 @@ jobs:
         end_pattern='</sessionState>'
 
         # Usamos sed para comentar el bloque específico
-        sed -i "/$start_pattern/,/$end_pattern/ s/^/<!-- /; /$end_pattern/ s/$/ -->/" "$FILE"
+        sed -i'' -e "\%${start_pattern}%,\%${end_pattern}% s%^%<!-- %" -e "\%${end_pattern}% s%$% -->%" "$FILE"
                 
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
