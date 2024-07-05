@@ -20,8 +20,8 @@ jobs:
         # Variable para detectar si estamos dentro de un bloque ya comentado
         inside_comment=0
 
-        # Variable para contar las ocurrencias de <sessionState>
-        count_sessionState=0
+        # Variable para detectar el bloque que queremos comentar
+        block_to_comment=0
 
         # Procesar el archivo con awk para comentar las líneas necesarias
         awk '
@@ -36,18 +36,19 @@ jobs:
                 inside_comment = 0
             }
             
-            # Contar las ocurrencias de <sessionState> fuera de bloques comentados
-            if (!inside_comment && /<sessionState/) {
-                count_sessionState++
+            # Detectar el bloque que queremos comentar
+            if (!inside_comment && /<sessionState mode="Custom" customProvider="MySessionStateStore">/) {
+                block_to_comment = 1
             }
             
-            # Comentar las líneas que no están dentro de un bloque comentado
-            if (!inside_comment && /<sessionState/ && count_sessionState == 2) {
-                gsub(/<sessionState/, "<!-- <sessionState")
+            # Comentar las líneas del bloque que queremos comentar
+            if (block_to_comment && /<sessionState mode="Custom" customProvider="MySessionStateStore">/) {
+                gsub(/<sessionState mode="Custom" customProvider="MySessionStateStore">/, "<!-- <sessionState mode=\"Custom\" customProvider=\"MySessionStateStore\">")
             }
             
-            if (!inside_comment && /sessionState>/ && count_sessionState == 2) {
-                gsub(/sessionState>/, "sessionState> -->")
+            if (block_to_comment && /<\/sessionState>/) {
+                gsub(/<\/sessionState>/, "</sessionState> -->")
+                block_to_comment = 0  # Desactivar la bandera después de comentar el bloque
             }
             
             # Imprimir la línea modificada o no modificada
