@@ -15,10 +15,16 @@ jobs:
     - name: Run script to modify web.config
       run: |
         FILE=web3.config
-        # Insert <!-- before <sessionState
-        sed -i '/<sessionState mode="Custom" customProvider="MySessionStateStore">/i <!--' $FILE
-        # Insert --> after </sessionState>
+        # Comentar el bloque <sessionState mode="Custom" customProvider="MySessionStateStore">
+        sed -i '/<sessionState mode="Custom" customProvider="MySessionStateStore">/,/<\/sessionState>/ {
+          /<sessionState mode="Custom" customProvider="MySessionStateStore">/i <!--
+          /<\/sessionState>/a -->
+        }' $FILE
+        # Ajustar para que sea un comentario de bloque correcto
+        sed -i '/<!--/a <sessionState mode="Custom" customProvider="MySessionStateStore">' $FILE
         sed -i '/<\/sessionState>/a -->' $FILE
+        sed -i '/<sessionState mode="Custom" customProvider="MySessionStateStore">/d' $FILE
+
                 
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
