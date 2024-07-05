@@ -14,20 +14,27 @@ jobs:
 
     - name: Run script to modify web.config
       run: |
-        second_open=$(awk '/<sessionState/ {count++; if (count == 2) print NR}' web3.config)
+        tmpfile=$(mktemp)
 
-        # Encontrar la línea de la segunda ocurrencia de </sessionState
-        second_close=$(awk '/<\/sessionState/ {count++; if (count == 2) print NR}' web3.config)
+        # Procesar el archivo y marcar las líneas con la segunda ocurrencia de <sessionState y </sessionState>
+        awk '
+          /<sessionState/ {
+            count_open++;
+            if (count_open == 2) {
+              sub("<sessionState", "<!-- <sessionState");
+            }
+          }
+          /<\/sessionState/ {
+            count_close++;
+            if (count_close == 2) {
+              sub("</sessionState", "sessionState> -->");
+            }
+          }
+          {print}
+        ' web3.config > "$tmpfile"
 
-        # Usar sed para comentar la segunda ocurrencia de <sessionState
-        if [ -n "$second_open" ]; then
-          sed -i "${second_open}s/<sessionState/<!-- <sessionState/" web3.config
-        fi
-
-        # Usar sed para comentar la segunda ocurrencia de </sessionState
-        if [ -n "$second_close" ]; then
-          sed -i "${second_close}s/<\/sessionState/\/sessionState> -->/" web3.config
-        fi
+        # Reemplazar el archivo original con el archivo temporal
+        mv "$tmpfile" web3.config
 
         
       
