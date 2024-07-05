@@ -26,28 +26,27 @@ jobs:
         # Variable para controlar si estamos dentro del bloque
         inside_block=false
 
-        # Procesar el archivo línea por línea
-        while IFS= read -r line; do
+        # Procesar el archivo línea por línea usando awk
+        awk -v start="$start_pattern" -v end="$end_pattern" '
+          {
             # Verificar si estamos dentro del bloque
-            if [[ $line =~ $start_pattern ]]; then
-                inside_block=true
-            fi
+            if ($0 ~ start) {
+              inside_block = 1
+            }
 
             # Comentar las líneas dentro del bloque
-            if [[ $inside_block == true ]]; then
-                # Comentar la línea actual
-                line="<!-- $line -->"
-            fi
+            if (inside_block) {
+              print "<!-- " $0 " -->"
+            } else {
+              print $0
+            }
 
             # Verificar si salimos del bloque
-            if [[ $line =~ $end_pattern ]]; then
-                inside_block=false
-            fi
-
-            # Imprimir la línea procesada
-            echo "$line"
-
-        done < "$FILE" > temp && mv temp "$FILE"
+            if ($0 ~ end) {
+              inside_block = 0
+            }
+          }
+        ' "$FILE" > temp && mv temp "$FILE"
                 
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
