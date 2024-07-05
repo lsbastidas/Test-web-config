@@ -20,10 +20,14 @@ jobs:
         second_close=$(awk '/<\/sessionState/ {count++; if (count == 2) print NR}' web3.config)
 
         # Usar sed para comentar la segunda ocurrencia de <sessionState
-        sed -i "${second_open}s/<sessionState/<!-- <sessionState/" web3.config
+        if [ -n "$second_open" ]; then
+          sed -i "${second_open}s/<sessionState/<!-- <sessionState/" web3.config
+        fi
 
         # Usar sed para comentar la segunda ocurrencia de </sessionState
-        sed -i "${second_close}s/<\/sessionState/\/sessionState> -->/" web3.config
+        if [ -n "$second_close" ]; then
+          sed -i "${second_close}s/<\/sessionState/\/sessionState> -->/" web3.config
+        fi
 
         
       
