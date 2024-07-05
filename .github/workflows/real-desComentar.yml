@@ -54,10 +54,10 @@ jobs:
             # Imprimir la línea modificada o no modificada
             print $0
         }
-        ' web4.config > "$tmpfile"
+        ' web3.config > "$tmpfile"
 
         # Reemplazar el archivo original con el archivo temporal
-        mv "$tmpfile" web4.config
+        mv "$tmpfile" web3.config
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
