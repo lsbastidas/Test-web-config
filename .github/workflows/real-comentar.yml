@@ -14,13 +14,17 @@ jobs:
 
     - name: Run script to modify web.config
       run: |
-        sed -i '0,/<sessionState/s//<!-- <sessionState/' web3.config
-        sed -i '0,<!-- <sessionState/{s//<sessionState/;:a;n;/<sessionState/s//<!-- <sessionState/;t};ba}' web3.config
+        second_open=$(awk '/<sessionState/ {count++; if (count == 2) print NR}' web3.config)
 
-        # Comentamos la segunda ocurrencia de </sessionState>
-        sed -i '0,/sessionState>/s//sessionState> -->/' web3.config
-        sed -i '0,sessionState> -->/{s//sessionState>/;:a;n;/sessionState>/s//sessionState> -->/;t};ba}' web3.config
-                
+        # Encontrar la línea de la segunda ocurrencia de </sessionState
+        second_close=$(awk '/<\/sessionState/ {count++; if (count == 2) print NR}' web3.config)
+
+        # Usar sed para comentar la segunda ocurrencia de <sessionState y </sessionState
+        sed -i "${second_open}s/<sessionState/<!-- <sessionState/" web3.config
+        sed -i "${second_close}s/<\/sessionState/\/sessionState> -->/" web3.config
+
+        
+      
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
