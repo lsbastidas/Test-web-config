@@ -14,50 +14,8 @@ jobs:
 
     - name: Run script to modify web.config
       run: |
-        # Crear un archivo temporal para almacenar el resultado
-        tmpfile=$(mktemp)
-
-        # Variable para detectar si estamos dentro de un bloque ya comentado
-        inside_comment=0
-
-        # Variable para detectar el bloque que queremos descomentar
-        block_to_uncomment=0
-
-        # Procesar el archivo con awk para descomentar las líneas necesarias
-        awk '
-        {
-            # Buscar inicio de bloque comentado
-            if (/<\!--.*<sessionState/ && !inside_comment) {
-                inside_comment = 1
-            }
-            
-            # Buscar fin de bloque comentado
-            if (/sessionState>.*-->/ && inside_comment) {
-                inside_comment = 0
-            }
-            
-            # Detectar el bloque que queremos descomentar
-            if (!inside_comment && /<!-- <sessionState mode="Custom" customProvider="MySessionStateStore">/) {
-                block_to_uncomment = 1
-            }
-            
-            # Descomentar las líneas del bloque que queremos descomentar
-            if (block_to_uncomment && /<!-- <sessionState mode="Custom" customProvider="MySessionStateStore">/) {
-                gsub(/<!-- <sessionState mode="Custom" customProvider="MySessionStateStore">/, "<sessionState mode=\"Custom\" customProvider=\"MySessionStateStore\">")
-            }
-            
-            if (block_to_uncomment && /<\/sessionState> -->/) {
-                gsub(/<\/sessionState> -->/, "</sessionState>")
-                block_to_uncomment = 0  # Desactivar la bandera después de descomentar el bloque
-            }
-            
-            # Imprimir la línea modificada o no modificada
-            print $0
-        }
-        ' web3.config > "$tmpfile"
-
-        # Reemplazar el archivo original con el archivo temporal
-        mv "$tmpfile" web3.config
+        sed -i 's/<!-- <sessionState/<sessionState/g' web4.config
+        sed -i 's/sessionState> -->/sessionState>/g' web4.config
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
