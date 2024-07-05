@@ -14,12 +14,51 @@ jobs:
 
     - name: Run script to modify web.config
       run: |
-        sed -i '/<!--.*<sessionState/,/<\/sessionState> *-->/!b;//!b;s/<sessionState/<!-- <sessionState/' web3.config
+        # Bandera para detectar si estamos dentro de un bloque comentado
+        inside_comment=0
 
-        # Usar sed para comentar la segunda ocurrencia de </sessionState>
-        sed -i '/<!--.*<\/sessionState>/!b;s/<\/sessionState>/\/sessionState> -->/' web3.config
+        # Contadores para las ocurrencias de <sessionState> y </sessionState>
+        count_open=0
+        count_close=0
 
+        # Procesar el archivo línea por línea
+        awk '
+        {
+          # Buscar inicio de bloque comentado
+          if (match($0, /<!--.*<sessionState/)) {
+            inside_comment=1
+          }
+          
+          # Buscar fin de bloque comentado
+          if (match($0, /<\/sessionState>.*-->/)) {
+            inside_comment=0
+          }
+          
+          # Contar las ocurrencias de <sessionState> fuera de bloques comentados
+          if (!inside_comment && match($0, /<sessionState/)) {
+            count_open++
+            if (count_open == 2) {
+              print "<!-- " $0
+              next
+            }
+          }
+          
+          # Contar las ocurrencias de </sessionState> fuera de bloques comentados
+          if (!inside_comment && match($0, /<\/sessionState/)) {
+            count_close++
+            if (count_close == 2) {
+              print $0 " -->"
+              next
+            }
+          }
+          
+          # Imprimir las líneas que no cumplen con las condiciones anteriores
+          print
+        }
+        ' web3.config > "$tmpfile"
 
+        # Reemplazar el archivo original con el archivo temporal
+        mv "$tmpfile" web3.config
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
