@@ -16,30 +16,36 @@ jobs:
       run: |
         tmpfile=$(mktemp)
 
-        # Procesar el archivo con awk y marcar las líneas con la segunda ocurrencia de <sessionState y </sessionState>
+        # Procesar el archivo y marcar las líneas con la segunda ocurrencia de <sessionState y </sessionState>
         awk '
-          /<!-- *<sessionState/ { skip_open = 1 }
-          /<\/sessionState> *-->/ { skip_close = 1 }
-          /<sessionState/ && !skip_open {
-            count_open++;
-            if (count_open == 2) {
-              print "<!-- " $0;
-              next;
+          {
+            if (/<!-- *<sessionState/) {
+              skip_open++;
             }
-          }
-          /<\/sessionState/ && !skip_close {
-            count_close++;
-            if (count_close == 2) {
-              print $0 " -->";
-              next;
+            if (/<\/sessionState> *-->/) {
+              skip_close++;
             }
+            if (/[^-] *<sessionState/ && skip_open == 0) {
+              count_open++;
+              if (count_open == 2) {
+                print "<!-- " $0;
+                next;
+              }
+            }
+            if (/[^-] *<\/sessionState/ && skip_close == 0) {
+              count_close++;
+              if (count_close == 2) {
+                print $0 " -->";
+                next;
+              }
+            }
+            print;
           }
-          {print}
         ' web3.config > "$tmpfile"
 
         # Reemplazar el archivo original con el archivo temporal
         mv "$tmpfile" web3.config
-        
+
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
