@@ -14,14 +14,40 @@ jobs:
 
     - name: Run script to modify web.config
       run: |
-        FILE=web3.config
-        awk '/<sessionState mode="Custom" customProvider="MySessionStateStore">/,/<\/sessionState>/ {
-          if (/sessionState/) {
-            print "<!-- " $0
-          } else {
-            print $0 " -->"
-          }
-        }' $FILE > temp && mv temp $FILE
+        #!/bin/bash
+
+        # Nombre del archivo
+        FILE="web3.config"
+
+        # Patrones para buscar y comentar el bloque específico
+        start_pattern='<sessionState mode="Custom" customProvider="MySessionStateStore">'
+        end_pattern='</sessionState>'
+
+        # Variable para controlar si estamos dentro del bloque
+        inside_block=false
+
+        # Procesar el archivo línea por línea
+        while IFS= read -r line; do
+            # Verificar si estamos dentro del bloque
+            if [[ $line =~ $start_pattern ]]; then
+                inside_block=true
+            fi
+
+            # Comentar las líneas dentro del bloque
+            if [[ $inside_block == true ]]; then
+                # Comentar la línea actual
+                line="<!-- $line -->"
+            fi
+
+            # Verificar si salimos del bloque
+            if [[ $line =~ $end_pattern ]]; then
+                inside_block=false
+            fi
+
+            # Imprimir la línea procesada
+            echo "$line"
+
+        done < "$FILE" > temp && mv temp "$FILE"
                 
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
