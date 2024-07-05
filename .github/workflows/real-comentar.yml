@@ -23,30 +23,8 @@ jobs:
         start_pattern='<sessionState mode="Custom" customProvider="MySessionStateStore">'
         end_pattern='</sessionState>'
 
-        # Variable para controlar si estamos dentro del bloque
-        inside_block=false
-
-        # Procesar el archivo línea por línea usando awk
-        awk -v start="$start_pattern" -v end="$end_pattern" '
-          {
-            # Verificar si estamos dentro del bloque
-            if ($0 ~ start) {
-              inside_block = 1
-            }
-
-            # Comentar las líneas dentro del bloque
-            if (inside_block) {
-              print "<!-- " $0 " -->"
-            } else {
-              print $0
-            }
-
-            # Verificar si salimos del bloque
-            if ($0 ~ end) {
-              inside_block = 0
-            }
-          }
-        ' "$FILE" > temp && mv temp "$FILE"
+        # Usamos sed para comentar el bloque específico
+        sed -i "/$start_pattern/,/$end_pattern/ s/^/<!-- /; /$end_pattern/ s/$/ -->/" "$FILE"
                 
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
