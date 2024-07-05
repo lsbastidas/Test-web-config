@@ -12,36 +12,43 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Comentar bloque de código en web.config
-      uses: actions/github-script@v6
-      with:
-        script: |
-          // Obtener el contenido del archivo web.config
-          const fs = require('fs');
-          const webConfigPath = 'web3.config';
-          const webConfigContent = fs.readFileSync(webConfigPath, 'utf8');
-    
-          // Marcadores de comentario para el bloque específico
-          const startCommentMarker = '<sessionState mode="Custom" customProvider="MySessionStateStore">';
-          const endCommentMarker = '</sessionState>';
-    
-          // Buscar los marcadores de comentario
-          const startCommentIndex = webConfigContent.indexOf(startCommentMarker);
-          const endCommentIndex = webConfigContent.indexOf(endCommentMarker, startCommentIndex + startCommentMarker.length);
-    
-          // Si se encuentran los marcadores, comentar el bloque
-          if (startCommentIndex !== -1 && endCommentIndex !== -1) {
-            const commentedBlock = webConfigContent.substring(startCommentIndex, endCommentIndex + endCommentMarker.length);
-            const updatedWebConfigContent = webConfigContent.replace(commentedBlock, 
-                                                                    '');
-    
-            // Actualizar el archivo web.config con el código comentado
-            fs.writeFileSync(webConfigPath, updatedWebConfigContent, 'utf8');
-            console.log('Bloque de código comentado correctamente en web.config');
-          } else {
-            console.error('No se encontraron los marcadores de comentario en web.config');
-          }
+    - name: Run script to modify web.config
+      run: |
+        # Crear un archivo temporal para almacenar el resultado
+        tmpfile=$(mktemp)
 
+        # Variable para detectar si estamos dentro de un bloque ya comentado
+        inside_comment=0
+
+        # Procesar el archivo con awk para comentar las líneas necesarias
+        awk '
+        {
+            # Buscar inicio de bloque comentado
+            if (/<\!--.*<sessionState/) {
+                inside_comment = 1
+            }
+            
+            # Buscar fin de bloque comentado
+            if (/sessionState>.*-->/) {
+                inside_comment = 0
+            }
+            
+            # Comentar las líneas que no están dentro de un bloque comentado
+            if (!inside_comment && /<sessionState/) {
+                gsub(/<sessionState/, "<!-- <sessionState")
+            }
+            
+            if (!inside_comment && /sessionState>/) {
+                gsub(/sessionState>/, "sessionState> -->")
+            }
+            
+            # Imprimir la línea modificada o no modificada
+            print $0
+        }
+        ' web3.config > "$tmpfile"
+
+        # Reemplazar el archivo original con el archivo temporal
+        mv "$tmpfile" web3.config
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
