@@ -18,13 +18,19 @@ jobs:
 
         # Procesar el archivo y marcar las líneas con la segunda ocurrencia de <sessionState y </sessionState>
         awk '
-          /<sessionState/ {
+          /<!-- *<sessionState/ { 
+            skip_open = 1 
+          }
+          /<\/sessionState> *-->/ { 
+            skip_close = 1 
+          }
+          /<sessionState/ && !skip_open {
             count_open++;
             if (count_open == 2) {
               sub("<sessionState", "<!-- <sessionState");
             }
           }
-          /<\/sessionState/ {
+          /<\/sessionState/ && !skip_close {
             count_close++;
             if (count_close == 2) {
               sub("</sessionState", "sessionState> -->");
