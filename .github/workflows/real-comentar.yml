@@ -18,27 +18,28 @@ jobs:
         tmpfile=$(mktemp)
 
         # Variable para detectar si estamos dentro de un bloque ya comentado
-        inside_comment=0
+        inside1_comment=0
+        inside2_comment=0
 
         # Procesar el archivo con awk para comentar las líneas necesarias
         awk '
         {
             # Buscar inicio de bloque comentado
             if (/<\!--.*<sessionState/) {
-                inside_comment = 1
+                inside1_comment = 1
             }
             
             # Buscar fin de bloque comentado
             if (/sessionState>.*-->/) {
-                inside_comment = 0
+                inside2_comment = 1
             }
             
             # Comentar las líneas que no están dentro de un bloque comentado
-            if (!inside_comment && /<sessionState/) {
+            if (!inside1_comment && /<sessionState/) {
                 gsub(/<sessionState/, "<!-- <sessionState")
             }
             
-            if (!inside_comment && /sessionState>/) {
+            if (!inside2_comment && /sessionState>/) {
                 gsub(/sessionState>/, "sessionState> -->")
             }
             
