@@ -20,9 +20,6 @@ jobs:
         # Variable para detectar si estamos dentro de un bloque ya comentado
         inside_comment=0
 
-        # Variable para contar las ocurrencias de <sessionState>
-        count_sessionState=0
-
         # Procesar el archivo con awk para comentar las líneas necesarias
         awk '
         {
@@ -36,17 +33,12 @@ jobs:
                 inside_comment = 0
             }
             
-            # Contar las ocurrencias de <sessionState> fuera de bloques comentados
-            if (!inside_comment && /<sessionState/) {
-                count_sessionState++
-            }
-            
             # Comentar las líneas que no están dentro de un bloque comentado
-            if (!inside_comment && /<sessionState/ && count_sessionState == 2) {
+            if (!inside_comment && /<sessionState/) {
                 gsub(/<sessionState/, "<!-- <sessionState")
             }
             
-            if (!inside_comment && /sessionState>/ && count_sessionState == 2) {
+            if (!inside_comment && /sessionState>/) {
                 gsub(/sessionState>/, "sessionState> -->")
             }
             
@@ -54,6 +46,9 @@ jobs:
             print $0
         }
         ' web3.config > "$tmpfile"
+
+        # Reemplazar el archivo original con el archivo temporal
+        mv "$tmpfile" web3.config
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
