@@ -18,7 +18,7 @@ jobs:
         script: |
           // Obtener el contenido del archivo web.config
           const fs = require('fs');
-          const webConfigPath = 'web.config';
+          const webConfigPath = 'web3.config';
           const webConfigContent = fs.readFileSync(webConfigPath, 'utf8');
     
           // Marcadores de comentario para el bloque específico
@@ -41,7 +41,7 @@ jobs:
           } else {
             console.error('No se encontraron los marcadores de comentario en web.config');
           }
-            
+
     - name: Upload modified web.config
       uses: actions/upload-artifact@v2
       with:
